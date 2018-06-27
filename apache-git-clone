@@ -1,0 +1,10 @@
+#!/bin/bash
+
+apt-get update 
+apt-get install -y apache2
+apt-get install -y git
+
+/etc/init.d/apache2 restart
+
+#rm -fr /var/www/html
+#git clone https://github.com/schogini/customweb.git /var/www/html
