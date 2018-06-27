@@ -1,0 +1,19 @@
+#!/bin/bash 
+echo "$(date) Starting.." >> /root/ud.txt
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+apt-get update
+apt-cache policy docker-ce
+apt-get install -y docker-ce
+#sudo systemctl status docker
+mkdir -p /etc/systemd/system/docker.service.d
+echo  "[Service]" > /etc/systemd/system/docker.service.d/override.conf
+echo  "ExecStart=" >> /etc/systemd/system/docker.service.d/override.conf
+echo  "ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2375" >> /etc/systemd/system/docker.service.d/override.conf
+systemctl daemon-reload
+systemctl restart docker.service
+
+echo "$(date) Done.." >> /root/ud.txt
+
+# export DOCKER_HOST=tcp://13.126.3.179:2375
+# source ci-docker.sh
