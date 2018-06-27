@@ -1,10 +1,20 @@
 #!/bin/bash
 
+echo "$(date) Starting.." >> /root/ud.txt
+
+
 apt-get update 
-apt-get install -y apache2
-apt-get install -y git
+apt-get install -y apache2 git
+echo "Servername $(hostname)" >> /etc/apache2/apache2.conf
+# apache2ctl configtest
+ufw allow in "Apache Full"
+# ufw app info "Apache Full"
+apt-get install -y nano wget tree curl git docker.io
 
-/etc/init.d/apache2 restart
+rm -fr /var/www/html
+git clone https://github.com/schogini/customweb.git /var/www/html
 
-#rm -fr /var/www/html
-#git clone https://github.com/schogini/customweb.git /var/www/html
+systemctl restart apache2
+systemctl enable apache2
+
+echo "$(date) Done.." >> /root/ud.txt
