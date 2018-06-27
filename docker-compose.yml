@@ -1,0 +1,51 @@
+version: '3.3'
+
+services:
+  git-init:
+    image: alpine/git
+    working_dir: /customweb
+    command: init 
+    volumes:
+      - ./customweb:/customweb
+  git-remote:
+    image: alpine/git
+    working_dir: /customweb
+    command: remote add origin https://github.com/schogini/customweb.git 
+    volumes:
+      - ./customweb:/customweb
+    links:
+     - git-init
+  git-pull:
+    image: alpine/git
+    working_dir: /customweb
+    # command: clone https://github.com/schogini/customweb.git 
+    command: pull origin master 
+    volumes:
+      - ./customweb:/customweb
+    links:
+     - git-remote
+  git-checkout:
+    image: alpine/git
+    working_dir: /customweb
+    command: checkout -- .
+    volumes:
+      - ./customweb:/customweb
+    links:
+     - git-pull
+
+  dbserver:
+      image: 'mariadb'
+      volumes:
+          - ./db-data:/var/lib/mysql
+      environment:
+          - MYSQL_ROOT_PASSWORD=dbroot123
+
+  webserver:
+      build: ./webserver
+      links:
+          - dbserver
+          - git-checkout
+      ports:
+          - '8234:80'
+      volumes:
+          - ./customweb:/var/www/html/
