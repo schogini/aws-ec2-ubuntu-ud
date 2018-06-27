@@ -15,7 +15,7 @@ aws ec2 run-instances \
 --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$tag}]" \
 --instance-type $type \
 --key-name $key \
---user-data file://./user-data-apache-mysql-customweb.txt \
+--user-data file://./apache-git-clone.txt \
 --subnet-id $sn \
 --security-group-ids $sg \
 --iam-instance-profile Name=SreeCodeCommitFullAccess
