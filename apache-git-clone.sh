@@ -6,7 +6,7 @@ sg=sg-b67abbfd
 sn=subnet-17965760
 #====================
 
-tag="Demo-Apache-MySQL-Sree-$(date +%s)"
+tag="Demo-Apache-Sree-$(date +%s)"
 
 aws ec2 run-instances \
 --region $region \
