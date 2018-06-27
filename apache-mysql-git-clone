@@ -1,21 +1,36 @@
 #!/bin/bash
 
+echo "$(date) Starting.." >> /root/ud.txt
 apt-get update 
-apt-get install -y apache2
-apt-get install -y git
-apt-get install mysql-server
-apt-get install -y php libapache2-mod-php
+apt-get install -y apache2 git
+echo "Servername $(hostname)" >> /etc/apache2/apache2.conf
+# apache2ctl configtest
+ufw allow in "Apache Full"
+# ufw app info "Apache Full"
+apt-get install -y nano wget tree curl git docker.io
 
-#sudo nano /etc/apache2/mods-enabled/dir.conf
-#<IfModule mod_dir.c>
-#    DirectoryIndex index.html index.cgi index.pl index.php index.xhtml index.htm
-#</IfModule>
+debconf-set-selections <<< 'mysql-server mysql-server/root_password password dbroot123'
+debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password dbroot123'
+apt-get install -y mysql-server
+sed -ri 's/bind-address\s+.*/bind-address = 0.0.0.0/g' /etc/mysql/mysql.conf.d/mysqld.cnf
+ufw allow mysql
+apt-get -y install php libapache2-mod-php php-mcrypt php-mysql
+sed -ri 's/DirectoryIndex\s+.*/DirectoryIndex index.php index.html/g' /etc/apache2/mods-enabled/dir.conf
+apt-get -y install php-cli
+echo "CREATE USER 'root'@'%' IDENTIFIED BY 'dbroot123';FLUSH PRIVILEGES;"|mysql -u root -pdbroot123 
+echo "CREATE USER 'root'@'ip-172-31-24-55.ap-south-1.compute.internal' IDENTIFIED BY 'dbroot123';FLUSH PRIVILEGES;"|mysql -u root -pdbroot123 
+echo "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';FLUSH PRIVILEGES;"|mysql -u root -pdbroot123 
+echo "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';FLUSH PRIVILEGES;"|mysql -u root -pdbroot123 
 
-sudo /etc/init.d/apache2 restart
+rm -fr /var/www/html
+git clone https://github.com/schogini/customweb.git /var/www/html
+sed -ri 's/dbserver/localhost/' /var/www/html/index.php
 
-#rm -fr /var/www/html
+systemctl restart mysql
+systemctl restart apache2
+systemctl enable mysql apache2
 
-#git clone https://github.com/schogini/customweb.git /var/www/html
-
-#echo "<?php phpinfo(); ?>" > /var/www/html/phpinfo.php
+echo "<?php phpinfo(); ?>" > /var/www/html/sree-i.php
 echo "New Hello World!" > /var/www/html/index.html
+
+echo "$(date) Done.." >> /root/ud.txt
