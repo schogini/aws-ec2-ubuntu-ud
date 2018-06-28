@@ -1,0 +1,142 @@
+
+We will use the create command to create three nodes.
+Since my mac has virtuax box installed I will use virtualbox driver. I will call the first machine manager1
+
+docker-machine create --driver virtualbox manager1
+
+docker-machine ls
+
+Yes we can see the entry manager1
+
+Let us repeat this for worker1 and worker2
+$ docker-machine create --driver virtualbox worker1
+$ docker-machine create --driver virtualbox worker2
+$ docker-machine ls
+
+Yes We have created the three vms
+
+Let us check the IPs assigned again using the env commands. 
+This is how to make any of these machine default. 
+
+But we do not need that now since we will login to the nodes for our docker swarm commands.
+
+Let us see if we are able to SSH into them.
+
+
+Get into the manager node
+docker-machine ssh manager1
+docker swarm init --advertise-addr 192.168.99.100
+The IP address is the one we got it from the docker machine env manager1 command.
+
+Now we login to the worker nodes and make then join the manage node. 
+
+Let us copy the command and paste it into the worker nodes.
+
+$ docker-machine ssh worker1
+$ docker swarm join --token SWMTKN-1-2mk0akcfd6z66izhekap0ajhrf2p6398sqg3y1x8hngwxb3aap-dzfc4urwpuelj22fbdndxnhbt 192.168.99.100:2377
+
+$ docker-machine ssh worker2
+$ docker swarm join --token SWMTKN-1-2mk0akcfd6z66izhekap0ajhrf2p6398sqg3y1x8hngwxb3aap-dzfc4urwpuelj22fbdndxnhbt 192.168.99.100:2377
+
+Now we need to get into the manager node for all our remaining docker swarm commands!
+
+[MANAGER NODE]
+$ docker node ls
+We can see the three nodes in our docker swarm.
+
+This node ls command will work only on the manager node as we can see here.
+
+Let us get back to the manager node and create an NGINX service in the swarm.
+
+Deploying Nginx Server in Swarm
+==================
+
+[MANAGER NODE]
+$ docker service create \
+	--name mynginx \
+	--publish 8080:80 \
+	--replicas 3 \
+	nginx
+
+
+$ docker service ls
+
+Using 
+$ docker service ps mynginx
+we can see on which nodes our NGINX containers are running.
+
+We can also login into our nodes and confirm this.
+
+
+
+
+Wait for the current state also to be running & Verify
+=================
+
+[MANAGER NODE]
+$ docker ps
+
+[WORKER 1 NODE]
+$ docker ps
+
+[WORKER 2 NODE]
+$ docker ps
+
+Ok let us browse the exposed port 8080 of the manager nodes IP.
+
+Browse the server
+=================
+
+http://192.168.99.100:8080/
+
+In order to confirm whihc nginx container is server let us make some changes to the index.html file in each of our node conatiners.
+
+
+[MANAGER NODE]
+
+we need to know the container ID usinf docker ps and use docker exec to get in
+
+$ docker exec -ti [CONTAINER_ID] bin/bash
+	# echo "Server file served from Manager Node..." > /usr/share/nginx/html/index.html
+
+Let us repeat this on the other two worker nodes.
+
+Let us browse and see which one is being served
+
+http://192.168.99.100:8080/  
+
+Ok this page is from the manager nodes ngnx conatiner.
+
+Let us drain this node from the service
+
+Sorry I am inside the container, let me exit to get back to the manager node prompt.
+
+[MANAGER NODE]
+$ docker service ps mynginx
+we have three nodes in our nginx service, let us drain the manager node from this.
+ 
+$ docker node update --availability drain manager1 
+$ docker service ps mynginx
+yes it has been removed.
+
+Now let us refresh and see, yes now work1 is being served.
+
+We could also scale down or up the number of nodes in a docker swarm service.
+
+example..
+$ docker service scale mynginx=2
+$ docker service ps mynginx
+
+Also docker swarm built in load balancer will auto route the incoming requests to the containers. Let us refresh and see. Instead of worker 1 now worker 2 is serving the page.
+
+Finally in order to clean up our experiements all we need to do is to 
+
+docker-machine rm manager1 worker1 worker2
+
+All the three machines have been removed... yes our ssh session have terminated as well.
+
+Hope you like this docker swarm quick demo and please feel free give your valuable feedbacks.
+
+Thank you!
+
+
