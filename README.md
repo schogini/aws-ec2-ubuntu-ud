@@ -1,6 +1,6 @@
 # aws-ec2-ubuntu-ud-1
 
-
+```
 function git_sparse_clone() (
   rurl="$1" localdir="$2" && shift 2
 
@@ -22,3 +22,5 @@ function git_sparse_clone() (
 Usage:
 
 git_sparse_clone "http://github.com/tj/n" "./local/location" "/bin"
+```
+
