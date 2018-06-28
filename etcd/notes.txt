@@ -1,0 +1,31 @@
+
+
+# docker run \
+# --name etcd --rm -P \
+# quay.io/coreos/etcd:v2.2.2
+
+# https://hub.docker.com/r/elcolio/etcd/
+
+docker run --rm -P --name etcd elcolio/etcd
+
+SreeMacMin16GB:aws sree$ docker exec etcd etcdctl set foo bar
+bar
+SreeMacMin16GB:aws sree$ docker exec etcd etcdctl get foo
+bar
+
+docker ps
+CONTAINER ID        IMAGE                        COMMAND             CREATED                  STATUS              PORTS                                                                                                NAMES
+2430dde044d3        quay.io/coreos/etcd:v2.2.2   "/etcd"             Less than a second ago   Up 22 seconds       0.0.0.0:32771->2379/tcp, 0.0.0.0:32770->2380/tcp, 0.0.0.0:32769->4001/tcp, 0.0.0.0:32768->7001/tcp   etcd
+
+
+SreeMacMin16GB:aws sree$ docker port etcd
+2379/tcp -> 0.0.0.0:32775
+2380/tcp -> 0.0.0.0:32774
+4001/tcp -> 0.0.0.0:32773
+7001/tcp -> 0.0.0.0:32772
+
+SreeMacMin16GB:aws sree$ curl -L http://localhost:32773/v2/keys/message -XPUT -d value="Hello world"
+{"action":"set","node":{"key":"/message","value":"Hello world","modifiedIndex":3,"createdIndex":3}}
+
+SreeMacMin16GB:aws sree$ curl -L http://localhost:32773/v2/keys/message
+{"action":"get","node":{"key":"/message","value":"Hello world","modifiedIndex":3,"createdIndex":3}}
