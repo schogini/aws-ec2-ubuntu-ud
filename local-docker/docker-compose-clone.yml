@@ -1,0 +1,30 @@
+version: '3.3'
+
+services:
+  git-clone:
+    image: alpine/git
+    working_dir: /customweb
+    command: clone https://github.com/schogini/customweb.git 
+    volumes:
+      - customweb:/customweb
+
+  dbserver:
+      image: 'mariadb'
+      volumes:
+          - db-data:/var/lib/mysql
+      environment:
+          - MYSQL_ROOT_PASSWORD=dbroot123
+
+  webserver:
+      build: ./webserver
+      links:
+          - dbserver
+          - git-clone
+      ports:
+          - '8234:80'
+      volumes:
+          - customweb:/var/www/html/
+
+volumes:
+    customweb:
+    db-data:

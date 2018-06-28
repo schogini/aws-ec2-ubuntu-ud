@@ -1,0 +1,81 @@
+#!/bin/bash
+
+apt-get update
+apt-get install -y apache2
+echo "Servername $(hostname)" >> /etc/apache2/apache2.conf
+# apache2ctl configtest
+systemctl restart apache2
+ufw allow in "Apache Full"
+# ufw app info "Apache Full"
+
+apt-get install -y docker.io
+
+apt-get install -y nano wget tree curl git
+# curl http://icanhazip.com
+debconf-set-selections <<< 'mysql-server mysql-server/root_password password dbroot123'
+debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password dbroot123'
+apt-get install -y mysql-server
+ufw allow mysql
+
+apt-get -y install php libapache2-mod-php php-mcrypt php-mysql
+sed -ri 's/DirectoryIndex\s+.*/DirectoryIndex index.php index.html/g' /etc/apache2/mods-enabled/dir.conf
+
+systemctl restart apache2
+# systemctl status apache2
+# apt-cache search php- | less
+# apt-cache show package_name
+apt-get -y install php-cli
+
+
+
+rm -fr /var/www/html
+# git clone https://github.com/schogini/customweb.git /var/www/html
+apt-get purge aws
+apt-get install python-pip -y
+pip install awscli
+# tail -f /var/log/syslog
+sleep 10
+export HOME=/root
+git config --global credential.helper '!aws codecommit credential-helper $@'
+git config --global credential.UseHttpPath true
+cat > /root/.gitconfig <<EOT
+[credential]
+	helper = !aws codecommit credential-helper $@
+	UseHttpPath = true
+EOT
+export HOME=/root
+let i=1
+while ! [ -d /var/www/html ]
+do
+  sleep 10
+  git clone https://git-codecommit.us-east-1.amazonaws.com/v1/repos/customweb /var/www/html
+  let i=$i+1
+  echo i=$i
+  [ $i -gt 20 ] && break
+  [ -f /var/www/html/index.php ] && break
+done
+
+sed -ri 's/dbserver/localhost/' /var/www/html/index.php
+echo "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';FLUSH PRIVILEGES;"|mysql -u root -pdbroot123 
+
+# mysql -u root -pdbroot123
+# mysql -u root -pdbroot123 -h localhost
+# mysql -u root -pdbroot123 -h 127.0.0.1
+
+# apt-get -y install php-mysqlnd
+# apt-get -y install php7.0-mysqli
+# apt-get install -y php7.0-mysql
+
+cat > /var/www/html/info.php <<EOT
+<?php
+phpinfo();
+?>
+EOT
+
+systemctl restart mysql
+systemctl restart apache2
+
+systemctl enable mysql apache2
+
+echo date > /root/ud.txt
+echo "Done" >> /root/ud.txt

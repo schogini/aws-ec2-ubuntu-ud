@@ -1,0 +1,19 @@
+ 
+
+ecs-cli configure --region us-east-1 --cluster june21ecs-cli --default-launch-type FARGATE 
+
+ecs-cli compose --ecs-params ecs-params.yml start --launch-type FARGATE
+
+INFO[0003] Using ECS task definition                     TaskDefinition="ecs-docker-compose:1"
+INFO[0004] Starting container...                         container=de349ec1-b3bf-441c-b385-1c6439bfecb5/webserver
+INFO[0005] Describe ECS container status                 container=de349ec1-b3bf-441c-b385-1c6439bfecb5/webserver desiredStatus=RUNNING lastStatus=PROVISIONING taskDefinition="ecs-docker-compose:1"
+INFO[0017] Describe ECS container status                 container=de349ec1-b3bf-441c-b385-1c6439bfecb5/webserver desiredStatus=RUNNING lastStatus=PROVISIONING taskDefinition="ecs-docker-compose:1"
+INFO[0030] Describe ECS container status                 container=de349ec1-b3bf-441c-b385-1c6439bfecb5/webserver desiredStatus=RUNNING lastStatus=PENDING taskDefinition="ecs-docker-compose:1"
+INFO[0043] Started container...                          container=de349ec1-b3bf-441c-b385-1c6439bfecb5/webserver desiredStatus=RUNNING lastStatus=RUNNING taskDefinition="ecs-docker-compose:1"
+
+ecs-cli compose --project-name service-cli service up
+
+INFO[0003] Using ECS task definition                     TaskDefinition="service-cli:1"
+INFO[0004] Created an ECS service                        service=service-cli taskDefinition="service-cli:1"
+INFO[0005] Updated ECS service successfully              desiredCount=1 serviceName=service-cli
+INFO[0020] (service service-cli) has started 1 tasks: (task 9760aeb1-c33a-447f-9a41-9b73f1ade475).  timestamp="2018-06-21 23:26:29 +0000 UTC"

@@ -1,0 +1,11 @@
+ecs-cli compose --file hello-world.yml --ecs-params ecs-params.yml start --launch-type FARGATE --create-log-groups
+
+ecs-cli compose --ecs-params ecs-params.yml start --launch-type FARGATE
+
+Sreeprakashs-MacBook-Air-3:ecs-hello-world sree$ ecs-cli compose --ecs-params ecs-params.yml start --launch-type FARGATE
+INFO[0002] Using ECS task definition                     TaskDefinition="ecs-hello-world:1"
+INFO[0003] Starting container...                         container=9cb514c6-8ba8-4415-bceb-4abe1dfee7cf/nginx
+INFO[0004] Describe ECS container status                 container=9cb514c6-8ba8-4415-bceb-4abe1dfee7cf/nginx desiredStatus=RUNNING lastStatus=PROVISIONING taskDefinition="ecs-hello-world:1"
+INFO[0017] Describe ECS container status                 container=9cb514c6-8ba8-4415-bceb-4abe1dfee7cf/nginx desiredStatus=RUNNING lastStatus=PROVISIONING taskDefinition="ecs-hello-world:1"
+INFO[0029] Describe ECS container status                 container=9cb514c6-8ba8-4415-bceb-4abe1dfee7cf/nginx desiredStatus=RUNNING lastStatus=PENDING taskDefinition="ecs-hello-world:1"
+INFO[0036] Started container...                          container=9cb514c6-8ba8-4415-bceb-4abe1dfee7cf/nginx desiredStatus=RUNNING lastStatus=RUNNING taskDefinition="ecs-hello-world:1"

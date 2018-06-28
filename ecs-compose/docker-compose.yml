@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+
+  # dbserver:
+  #     image: mariadb
+  #     # volumes:
+  #     #     - db-data:/var/lib/mysql
+  #     environment:
+  #         - MYSQL_ROOT_PASSWORD=dbroot123
+
+  # This is the container name
+  schogini-apache-php-g:
+      image: 504881750319.dkr.ecr.us-east-1.amazonaws.com/schogini-apache-php-g
+      # links:
+      #     - dbserver
+      ports:
+          - '80:80'
+#       volumes:
+#           - customweb:/var/www/html/
+# volumes:
+#     customweb
+#     dbserver
