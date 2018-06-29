@@ -1,0 +1,128 @@
+
+cd /Users/sree/vms/docker/kubernetes/Ubuntu16x3
+vagrant up 
+vagrant ssh kube1
+vagrant ssh kube2
+vagrant ssh kube3
+
+64  kubeadm reset
+65  kubeadm init --apiserver-advertise-address 172.28.128.11 --pod-network-cidr 10.1.0.0/16
+66  export KUBECONFIG=/etc/kubernetes/admin.conf
+67  kubectl apply -f https://raw.githubusercontent.com/cloudnativelabs/kube-router/master/daemonset/kubeadm-kuberouter.yaml
+
+============= OLD =========
+root@server1:~# kubeadm init
+
+Your Kubernetes master has initialized successfully!
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+You can now join any number of machines by running the following on each node
+as root:
+
+  kubeadm join 10.0.2.15:6443 --token nadgq1.wq49767ro3ine2j5 --discovery-token-ca-cert-hash sha256:93779e47850072bb70d2c08660be19e85e0eb44c99d3eb50b92257cadea68b28
+
+# PAST
+# ====
+    2  docker info
+    3  cat /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    4  apt-get install -y kubelet kubeadm kubectl
+    5  apt-get update
+    6  [ $(hostname) == server1 ] && echo Y
+    7  [ $(hostname) == server2 ] && echo Y
+    8  apt-get install -y kubelet kubeadm kubectl
+    9  cat /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+   10  cat /etc/systemd/system/kubelet.service.d/10-kubeadm.conf|grep cgroup-driver
+   11  kubeadm init
+   12  exit
+   13  ls -l 
+   14  car sree.txt 
+   15  cat sree.txt 
+   16  exit
+   17  kubeadm init
+   18  ifconfig
+   19  kubeadm -h
+   20  kubeadm reset
+   21  kubeadm init
+   22  history
+   23  nc -l 1234
+   24  ifconfig
+   25  nc -l 172.28.128.11:1234
+   26  kubeadm reset
+   27  kubeadm init --apiserver-advertise-address 172.28.128.11
+   28  kubeadm getnodes
+   29  kubeadm get nodes
+   30  kubctl get nodes
+   31  kubectl get nodes
+   32  cat /etc/kubernetes/admin.conf
+   33  export KUBECONFIG=/etc/kubernetes/admin.conf
+   34  kubectl get nodes
+   35  kubectl get pods -n kube-system
+   36  journalctl -f
+   37  kubeadm reset
+   38  kubeadm init --apiserver-advertise-address 172.28.128.11 --pod-network-cidr 172.28.128.0/24
+   39  export KUBECONFIG=/etc/kubernetes/admin.conf
+   40  kubectl get nodes
+   41  kubectl get pods -n kube-system
+   42  kubectl get nodes
+   43  journalctl -f
+   44  kubelet.go:2130] Container runtime network not ready: NetworkReady=false reason:NetworkPluginNotReady message:docker: network plugin is not ready: cni config uninitialized
+   45  kubeadm join 172.28.128.11:6443 --token 205gyz.vgxszf8x4ga6b0ib --discovery-token-ca-cert-hash sha256:c600a179a0cbac3acda8e84551a6249fa4a8ca6a767bac08159161dd09bcfced
+   46  kubeadm reset
+   47  kubeadm init --apiserver-advertise-address 172.28.128.11 --pod-network-cidr 172.17.0.1/16
+   48  kubectl get nodes
+   49  journalctl -f
+   50  kubeadm reset
+   51  kubeadm init --apiserver-advertise-address 172.28.128.11 --pod-network-cidr 10.0.0.0/16
+   52  kubectl get nodes
+   53  kubeadm reset
+   54  kubeadm init --apiserver-advertise-address 172.28.128.11 --pod-network-cidr 172.17.0.0/16
+   55  export KUBECONFIG=/etc/kubernetes/admin.conf
+   56  kubectl get nodes
+   57  kubeadm reset
+   58  kubeadm init --apiserver-advertise-address 172.28.128.11 --pod-network-cidr 10.0.0.0/16
+   59  kubectl get nodes
+   60  journalctl -f
+   61  kubectl get status
+   62  kubectl get nodes
+   63  kubectl get pods -n kube-system
+
+# FINAL WORKING MASTER
+# =============
+   64  kubeadm reset
+   65  kubeadm init --apiserver-advertise-address 172.28.128.11 --pod-network-cidr 10.1.0.0/16
+   66  export KUBECONFIG=/etc/kubernetes/admin.conf
+   67  kubectl apply -f https://raw.githubusercontent.com/cloudnativelabs/kube-router/master/daemonset/kubeadm-kuberouter.yaml
+   68  kubectl get nodes
+   69  journalctl -f
+   70  kubectl get nodes
+   71  kubectl get pods -n kube-system
+   72  kubectl get pods --all-namespaces --watch
+   73  kubectl run joatmon08-nginx --image nginx --port=80
+   74  kubectl expose deployment joatmon08-nginx --type=NodePort
+   75  kubectl get deployment
+   76  kubectl get services
+   77  kubectl describe pod 
+   78  kubectl get pods
+   79  kubectl describe pod joatmon08-nginx-67b8df4c9b-lpk7j
+   80  clear
+   81  kubectl describe pod joatmon08-nginx-67b8df4c9b-lpk7j
+
+# FINAL WORKING NODE 
+# ==================
+
+   12  kubeadm reset
+   13  kubeadm join 172.28.128.11:6443 --token rdicmg.l56v2zfnqi72cgsl --discovery-token-ca-cert-hash sha256:6fbf15e6de32ab2d500134a1b634d8647ccf6bea49b9e15c2a92993008232429
+   14  docker ps
+
+
+
+

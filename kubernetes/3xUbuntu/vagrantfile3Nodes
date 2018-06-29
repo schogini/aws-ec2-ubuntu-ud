@@ -1,0 +1,24 @@
+
+Vagrant.configure("2") do |config|
+  (1..3).each do |i|
+      config.vm.define "kube#{i}" do |server|
+        server.vm.box = "ubuntu/xenial64"
+        server.vm.box_url = "http://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-vagrant.box"
+        server.vm.hostname = "server#{i}"
+        server.vm.network 'private_network', ip: "172.28.128.1#{i}"
+        server.vm.network "forwarded_port", guest: 22, host: 2222, auto_correct: true
+        # server.vm.synced_folder "./jenkins_home", "/var/lib/jenkins", owner: "jenkins", group: "jenkins"
+        server.vm.provision "shell", inline: <<-SHELL
+          apt-get update
+          apt-get install -y wget tree curl nano openssh-server
+          passwd -d root
+          sed -ri 's/^#IgnoreUserKnownHosts\s+.*/IgnoreUserKnownHosts yes/' /etc/ssh/sshd_config
+          sed -ri 's/^PermitEmptyPasswords\s+.*/PermitEmptyPasswords yes/' /etc/ssh/sshd_config
+          sed -ri 's/^PermitRootLogin\s+.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+          sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config
+
+          service ssh restart
+        SHELL
+      end
+  end
+end

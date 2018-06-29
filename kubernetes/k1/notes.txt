@@ -1,0 +1,118 @@
+Sree:k1>minikube start
+
+Sree:k1>kubectl version
+Client Version: version.Info{Major:"1", Minor:"10", GitVersion:"v1.10.2", GitCommit:"81753b10df112992bf51bbc2c2f85208aad78335", GitTreeState:"clean", BuildDate:"2018-05-12T04:12:12Z", GoVersion:"go1.9.6", Compiler:"gc", Platform:"darwin/amd64"}
+Server Version: version.Info{Major:"1", Minor:"10", GitVersion:"v1.10.0", GitCommit:"fc32d2f3698e36b93322a3465f63a14e9f0eaead", GitTreeState:"clean", BuildDate:"2018-03-26T16:44:10Z", GoVersion:"go1.9.3", Compiler:"gc", Platform:"linux/amd64"}
+
+Sree:k1>kubectl cluster-info
+Kubernetes master is running at https://192.168.99.100:8443
+KubeDNS is running at https://192.168.99.100:8443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+
+Sree:k1>kubectl get nodes
+NAME       STATUS    ROLES     AGE       VERSION
+minikube   Ready     master    33d       v1.10.0
+Sree:k1>
+
+
+Sree:k1>kubectl run web1 --image=nginx:latest --port=8000
+deployment.apps "web1" created
+Sree:k1>kubectl get deployments
+NAME      DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+web       1         1         1            1           33d
+web1      1         1         1            0           18s
+
+Sree:k1>kubectl proxy
+Starting to serve on 127.0.0.1:8001
+
+curl 127.0.0.1:8001/version
+{
+  "major": "1",
+  "minor": "10",
+  "gitVersion": "v1.10.0",
+  "gitCommit": "fc32d2f3698e36b93322a3465f63a14e9f0eaead",
+  "gitTreeState": "clean",
+  "buildDate": "2018-03-26T16:44:10Z",
+  "goVersion": "go1.9.3",
+  "compiler": "gc",
+  "platform": "linux/amd64"
+}
+
+Sree2:k1kubectl get pods
+NAME                    READY     STATUS             RESTARTS   AGE
+web-bbcdd5f4-zfbbk      1/1       Running            1          33d
+web1-5b89bd54b9-7lbgt   0/1       ImagePullBackOff   0          7m
+
+curl http://localhost:8001/api/v1/namespaces/default/pods/web-bbcdd5f4-zfbbk/proxy/
+Welcome to nginx!
+
+# =================== WORKS WITHOUT OPENING PORTS
+kubectl run web3 --image=nginx:alpine
+deployment.apps "web3" created
+
+Sree:k1>kubectl get deployments
+NAME      DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+web3      1         1         1            1           3s
+
+Sree:k1>kubectl get pods
+NAME                      READY     STATUS             RESTARTS   AGE
+web3-77655f9c46-2vxvt     1/1       Running            0          36s
+
+Sree:k1>kubectl proxy
+Starting to serve on 127.0.0.1:8001
+curl http://localhost:8001/api/v1/namespaces/default/pods/web3-77655f9c46-2vxvt/proxy/
+Welcome to nginx!
+# =================================================
+
+Sree:k1>kubectl expose deployment web3 --type=LoadBalancer --port=80
+service "web3" exposed
+Sree:k1>kubectl get services
+NAME         TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+kubernetes   ClusterIP      10.96.0.1      <none>        443/TCP        33d
+web3         LoadBalancer   10.99.190.81   <pending>     80:32101/TCP   8s
+
+Sree:k1>curl http://192.168.99.100:32101/
+Welcome to nginx!
+
+Sree:k1>kubectl get services
+NAME         TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+kubernetes   ClusterIP      10.96.0.1      <none>        443/TCP        33d
+web3         LoadBalancer   10.99.190.81   <pending>     80:32101/TCP   9m
+
+Sree:k1>kubectl get nodes
+NAME       STATUS    ROLES     AGE       VERSION
+minikube   Ready     master    33d       v1.10.0
+
+Sree:k1>kubectl get pods
+NAME                    READY     STATUS    RESTARTS   AGE
+web3-77655f9c46-2vxvt   1/1       Running   0          14m
+
+Sree:k1>kubectl delete deployment web3
+deployment.extensions "web3" deleted
+
+Sree:k1>kubectl get services
+NAME         TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+kubernetes   ClusterIP      10.96.0.1      <none>        443/TCP        33d
+web3         LoadBalancer   10.99.190.81   <pending>     80:32101/TCP   10m
+
+Sree:k1>kubectl get pods
+No resources found.
+
+Sree:k1>kubectl delete service web3
+service "web3" deleted
+
+Sree:k1>kubectl get pods
+No resources found.
+
+Sree:k1>kubectl get services
+NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   33d
+
+Sree:k1>kubectl get deployments
+No resources found.
+Sree:k1>
+
+minikube stop
+
+# ===================================================

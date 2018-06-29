@@ -1,0 +1,53 @@
+
+Vagrant.configure("2") do |config|
+  (1..3).each do |i|
+      config.vm.define "kube#{i}" do |server|
+        server.vm.box = "ubuntu/xenial64"
+        server.vm.box_url = "http://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-vagrant.box"
+        server.vm.hostname = "server#{i}"
+        server.vm.network 'private_network', ip: "172.28.128.1#{i}"
+        server.vm.network "forwarded_port", guest: 22, host: 2222, auto_correct: true
+        # server.vm.synced_folder "./jenkins_home", "/var/lib/jenkins", owner: "jenkins", group: "jenkins"
+        server.vm.provision "shell", inline: <<-SHELL
+          apt-get update
+          apt-get install -y wget tree curl nano openssh-server
+
+          # https://kubernetes.io/docs/tasks/tools/install-kubeadm/
+          apt-get install -y docker.io
+          # or install Docker CE 17.03 from Docker’s repositories for Ubuntu or Debian:
+          # apt-get update
+          # apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+          # curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+          # add-apt-repository "deb https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(lsb_release -cs) stable"
+          # apt-get update && apt-get install -y docker-ce=$(apt-cache madison docker-ce | grep 17.03 | head -1 | awk '{print $3}')
+
+          # Install KubeAdm
+          apt-get update && apt-get install -y apt-transport-https curl
+          curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+          cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
+          deb http://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+          apt-get update
+          apt-get install -y kubelet kubeadm kubectl
+
+          if [ $(hostname) == server1 ]; then
+            #docker info | grep -i cgroup
+            #cat /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+            sed -i "s/cgroup-driver=systemd/cgroup-driver=cgroupfs/g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+            echo kube1s > /root/sree.txt
+            systemctl daemon-reload
+            systemctl restart kubelet
+          fi
+
+          passwd -d root
+          sed -ri 's/^#IgnoreUserKnownHosts\s+.*/IgnoreUserKnownHosts yes/' /etc/ssh/sshd_config
+          sed -ri 's/^PermitEmptyPasswords\s+.*/PermitEmptyPasswords yes/' /etc/ssh/sshd_config
+          sed -ri 's/^PermitRootLogin\s+.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+          sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config
+          sed -ri 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+
+          service ssh restart
+        SHELL
+      end
+  end
+end
