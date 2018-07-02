@@ -1,9 +1,33 @@
 
+# MINIKUBE INSTALLATION
+# https://github.com/kubernetes/minikube/releases/tag/v0.28.0
+MAC
+curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.28.0/minikube-darwin-amd64
+chmod +x minikube
+sudo mv minikube /usr/local/bin/
+
 # https://kubernetes.io/docs/tutorials/hello-minikube/
 minikube start
+# ==========================================================================
+There is a newer version of minikube available (v0.28.0).  Download it here:
+https://github.com/kubernetes/minikube/releases/tag/v0.28.0
+
+To disable this notification, run the following:
+minikube config set WantUpdateNotification false
+Starting local Kubernetes v1.10.0 cluster...
+Starting VM...
+Getting VM IP address...
+Moving files into cluster...
+Setting up certs...
+Connecting to cluster...
+Setting up kubeconfig...
+Starting cluster components...
+Kubectl is now configured to use the cluster.
+Loading cached images from config file.
+
 
 minikube docker-env
-
+# ==========================================================================
 export DOCKER_TLS_VERIFY="1"
 export DOCKER_HOST="tcp://192.168.99.100:2376"
 export DOCKER_CERT_PATH="/Users/sree/.minikube/certs"
@@ -12,7 +36,7 @@ export DOCKER_API_VERSION="1.23"
 # eval $(minikube docker-env)
 
 minikube docker-env -u
-
+# ==========================================================================
 Sree:k2>minikube docker-env -u
 unset DOCKER_TLS_VERIFY
 unset DOCKER_HOST
@@ -20,11 +44,13 @@ unset DOCKER_CERT_PATH
 unset DOCKER_API_VERSION
 # Run this command to configure your shell:
 # eval $(minikube docker-env)
-
+# ==========================================================================
 eval $(minikube docker-env)
+# ==========================================================================
 Note: Later, when you no longer wish to use the Minikube host, you can undo this change by running eval $(minikube docker-env -u).
-
+# ==========================================================================
 Sree:k2>docker images
+# ==========================================================================
 REPOSITORY                                 TAG                 IMAGE ID            CREATED             SIZE
 nginx                                      alpine              ebe2c7c61055        2 months ago        18MB
 k8s.gcr.io/kube-proxy-amd64                v1.10.0             bfc21aadc7d3        3 months ago        97MB
@@ -53,14 +79,203 @@ latest: Pulling from library/nginx
 
 
 docker build -t hello-node:v1 .
-
+# ==========================================================================
 # Create a Deployment
 # The Pod in this tutorial has only one Container. A Kubernetes Deployment 
 # checks on the health of your Pod and restarts the Pod’s Container if it terminates. 
 # Deployments are the recommended way to manage the creation and scaling of Pods.
 
-kubectl run hello-node --image=hello-node:v1 --port=8080 --image-pull-policy=Never
+# KUBECTL INSTALL 
+# https://kubernetes.io/docs/tasks/tools/install-kubectl/
+sudo apt-get update && sudo apt-get install -y apt-transport-https
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+sudo touch /etc/apt/sources.list.d/kubernetes.list 
+echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+sudo apt-get update
+sudo apt-get install -y kubectl
+# MAC
+brew install kubectl
+brew upgrade kubernetes-cli
 
+SreeMacMin16GB:kubernetes sree$ kubectl cluster-info
+# ==========================================================================
+Kubernetes master is running at https://192.168.99.100:8443
+KubeDNS is running at https://192.168.99.100:8443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+
+kubectl run hello-node --image=hello-node:v1 --port=8080 --image-pull-policy=Never
+# ==========================================================================
+
+deployment.apps "hello-node" created
+# ==========================================================================
+SreeMacMin16GB:kubernetes sree$ kubectl get deployments
+# ==========================================================================
+NAME         DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+hello-node   1         1         1            1           1m
+# ==========================================================================
+SreeMacMin16GB:kubernetes sree$ kubectl get pods
+# ==========================================================================
+NAME                          READY     STATUS    RESTARTS   AGE
+hello-node-57c6b66f9c-l4n9k   1/1       Running   0          1m
+# ==========================================================================
+SreeMacMin16GB:kubernetes sree$ kubectl get events
+# ==========================================================================
+LAST SEEN   FIRST SEEN   COUNT     NAME                                           KIND         SUBOBJECT                     TYPE      REASON                    SOURCE                  MESSAGE
+2m          2m           1         hello-node-57c6b66f9c-l4n9k.153d7862ce39009d   Pod                                        Normal    Scheduled                 default-scheduler       Successfully assigned hello-node-57c6b66f9c-l4n9k to minikube
+2m          2m           1         hello-node-57c6b66f9c-l4n9k.153d7862dd61a2d2   Pod                                        Normal    SuccessfulMountVolume     kubelet, minikube       MountVolume.SetUp succeeded for volume "default-token-qmvqk" 
+2m          2m           1         hello-node-57c6b66f9c-l4n9k.153d7862fc7f65a6   Pod          spec.containers{hello-node}   Normal    Pulled                    kubelet, minikube       Container image "hello-node:v1" already present on machine
+2m          2m           1         hello-node-57c6b66f9c-l4n9k.153d786301b5db74   Pod          spec.containers{hello-node}   Normal    Created                   kubelet, minikube       Created container
+2m          2m           1         hello-node-57c6b66f9c-l4n9k.153d7863108978a1   Pod          spec.containers{hello-node}   Normal    Started                   kubelet, minikube       Started container
+2m          2m           1         hello-node-57c6b66f9c.153d7862cd038619         ReplicaSet                                 Normal    SuccessfulCreate          replicaset-controller   Created pod: hello-node-57c6b66f9c-l4n9k
+2m          2m           1         hello-node.153d7862cadaaf83                    Deployment                                 Normal    ScalingReplicaSet         deployment-controller   Scaled up replica set hello-node-57c6b66f9c to 1
+15m         15m          1         minikube.153d77a7a0a93024                      Node                                       Normal    Starting                  kubelet, minikube       Starting kubelet.
+15m         15m          6         minikube.153d77a7ac3bdc84                      Node                                       Normal    NodeHasSufficientDisk     kubelet, minikube       Node minikube status is now: NodeHasSufficientDisk
+15m         15m          6         minikube.153d77a7ac3bf8c4                      Node                                       Normal    NodeHasSufficientMemory   kubelet, minikube       Node minikube status is now: NodeHasSufficientMemory
+15m         15m          6         minikube.153d77a7ac3c0d10                      Node                                       Normal    NodeHasNoDiskPressure     kubelet, minikube       Node minikube status is now: NodeHasNoDiskPressure
+15m         15m          5         minikube.153d77a7ac3c1be4                      Node                                       Normal    NodeHasSufficientPID      kubelet, minikube       Node minikube status is now: NodeHasSufficientPID
+15m         15m          1         minikube.153d77a834d85023                      Node                                       Normal    NodeAllocatableEnforced   kubelet, minikube       Updated Node Allocatable limit across pods
+14m         14m          1         minikube.153d77b8594baf10                      Node                                       Normal    Starting                  kube-proxy, minikube    Starting kube-proxy.
+
+# ==========================================================================
+SreeMacMin16GB:kubernetes sree$ kubectl config view
+# ==========================================================================
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority: /Users/sree/.minikube/ca.crt
+    server: https://192.168.99.100:8443
+  name: minikube
+contexts:
+- context:
+    cluster: minikube
+    user: minikube
+  name: minikube
+current-context: minikube
+kind: Config
+preferences: {}
+users:
+- name: minikube
+  user:
+    client-certificate: /Users/sree/.minikube/client.crt
+    client-key: /Users/sree/.minikube/client.key
+# ==========================================================================
+Create a Service
+SreeMacMin16GB:kubernetes sree$ kubectl expose deployment hello-node --type=LoadBalancer
+service "hello-node" exposed
+# ==========================================================================
+SreeMacMin16GB:kubernetes sree$ kubectl get services
+NAME         TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+hello-node   LoadBalancer   10.109.53.147   <pending>     8080:31165/TCP   35s
+kubernetes   ClusterIP      10.96.0.1       <none>        443/TCP          36d
+# ==========================================================================
+SreeMacMin16GB:kubernetes sree$ minikube service hello-node
+Opening kubernetes service default/hello-node in default browser...
+Opera
+http://192.168.99.100:31165
+Hello World!
+# ==========================================================================
+SreeMacMin16GB:kubernetes sree$ kubectl logs hello-node-57c6b66f9c-l4n9k
+Received request for URL: /
+Received request for URL: /favicon.ico
+# ==========================================================================
+Edit your server.js file to return a new message:
+
+response.end('Hello World Again!');
+# ==========================================================================
+docker build -t hello-node:v2 .
+# ==========================================================================
+kubectl set image deployment/hello-node hello-node=hello-node:v2
+deployment.extensions/hello-node image updated
+# ==========================================================================
+SreeMacMin16GB:k2 sree$ minikube service hello-node
+Waiting, endpoint for service is not ready yet...
+# ==========================================================================
+SreeMacMin16GB:k2 sree$ kubectl get pods
+NAME                          READY     STATUS              RESTARTS   AGE
+hello-node-57c8dd9df8-7hlvw   0/1       ErrImageNeverPull   0          2m
+# ==========================================================================
+# I WAS ON A WRONG TERMINAL WHICH DID NOT HAVE THE DOCKER MACHINE VALUES!!
+# ==========================================================================
+docker build -t hello-node:v2 .
+kubectl set image deployment/hello-node hello-node=hello-node:v2
+Just reloaded browser http://192.168.99.100:31165
+Or 
+minikube service hello-node
+# ==========================================================================
+SreeMacMin16GB:k2 sree$ minikube addons list
+- addon-manager: enabled
+- coredns: disabled
+- dashboard: enabled
+- default-storageclass: enabled
+- efk: disabled
+- freshpod: disabled
+- heapster: disabled
+- ingress: disabled
+- kube-dns: enabled
+- metrics-server: disabled
+- registry: disabled
+- registry-creds: disabled
+- storage-provisioner: enabled
+SreeMacMin16GB:k2 sree$ minikube addons enable heapster
+heapster was successfully enabled
+# ==========================================================================
+SreeMacMin16GB:k2 sree$ kubectl get pods
+NAME                          READY     STATUS    RESTARTS   AGE
+hello-node-57c8dd9df8-7hlvw   1/1       Running   0          7m
+# ==========================================================================
+SreeMacMin16GB:k2 sree$ kubectl get services
+NAME         TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+hello-node   LoadBalancer   10.109.53.147   <pending>     8080:31165/TCP   16m
+kubernetes   ClusterIP      10.96.0.1       <none>        443/TCP          36d
+# ==========================================================================
+SreeMacMin16GB:k2 sree$ kubectl get po,svc
+NAME                              READY     STATUS    RESTARTS   AGE
+pod/hello-node-57c8dd9df8-7hlvw   1/1       Running   0          7m
+
+NAME                 TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+service/hello-node   LoadBalancer   10.109.53.147   <pending>     8080:31165/TCP   16m
+service/kubernetes   ClusterIP      10.96.0.1       <none>        443/TCP          36d
+# ==========================================================================
+SreeMacMin16GB:k2 sree$ kubectl get po,svc -n kube-system
+NAME                                        READY     STATUS              RESTARTS   AGE
+pod/etcd-minikube                           1/1       Running             0          34m
+pod/heapster-bb8dn                          1/1       Running             0          1m
+pod/influxdb-grafana-pr6vx                  0/2       ContainerCreating   0          1m
+pod/kube-addon-manager-minikube             1/1       Running             3          36d
+pod/kube-apiserver-minikube                 1/1       Running             0          34m
+pod/kube-controller-manager-minikube        1/1       Running             0          34m
+pod/kube-dns-86f4d74b45-b8fs8               3/3       Running             11         36d
+pod/kube-proxy-fxgdw                        1/1       Running             0          33m
+pod/kube-scheduler-minikube                 1/1       Running             2          3d
+pod/kubernetes-dashboard-5498ccf677-9fmh9   1/1       Running             8          36d
+pod/storage-provisioner                     1/1       Running             9          36d
+
+NAME                           TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)             AGE
+service/heapster               ClusterIP   10.105.63.94     <none>        80/TCP              1m
+service/kube-dns               ClusterIP   10.96.0.10       <none>        53/UDP,53/TCP       36d
+service/kubernetes-dashboard   NodePort    10.105.206.212   <none>        80:30000/TCP        36d
+service/monitoring-grafana     NodePort    10.107.35.44     <none>        80:30002/TCP        1m
+service/monitoring-influxdb    ClusterIP   10.109.220.24    <none>        8083/TCP,8086/TCP   1m
+# ==========================================================================
+minikube addons open heapster
+STUDY HEAPSTER 
+# ==========================================================================
+Now you can clean up the resources you created in your cluster:
+
+kubectl delete service hello-node
+kubectl delete deployment hello-node
+Optionally, force removal of the Docker images created:
+
+docker rmi hello-node:v1 hello-node:v2 -f
+Optionally, stop the Minikube VM:
+
+minikube stop
+eval $(minikube docker-env -u)
+Optionally, delete the Minikube VM:
+
+minikube delete
+# ==========================================================================
 
 
 

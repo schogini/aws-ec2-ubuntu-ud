@@ -1,0 +1,26 @@
+node 'puppetnode1' {
+ include motd
+}
+node 'puppet' {
+ include motd
+ #include simpleclass
+ class { 'simpleclass': }
+ class { 'simpleclass2':
+ 	myname => "Sree3",   #Is not provided will use the default
+ }
+}
+
+class simpleclass {
+        $myname = "Sree"
+        file { '/root/test.txt':
+          ensure  => file,
+          content => "AAAA $myname\n"
+        }
+}
+class simpleclass2($myname="Sree") {  # Default
+        file { '/root/test2.txt':
+          ensure  => file,
+          content => "AAAA $myname\n"
+        }
+}
+root@puppet:/etc/puppetlabs/code/environments/production# puppet agent -t
