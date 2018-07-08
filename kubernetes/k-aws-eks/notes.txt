@@ -1,0 +1,160 @@
+kubectl version --short --client
+Client Version: v1.11.0
+
+https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html
+
+Download the Amazon EKS-vended heptio-authenticator-aws binary from Amazon S3:
+
+    Linux: https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-06-05/bin/linux/amd64/heptio-authenticator-aws
+
+    MacOS: https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-06-05/bin/darwin/amd64/heptio-authenticator-aws
+
+    Windows: https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-06-05/bin/windows/amd64/heptio-authenticator-aws.exe
+
+
+SreeMacMin16GB:k-aws-eks sree$ curl -o heptio-authenticator-aws https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-06-05/bin/darwin/amd64/heptio-authenticator-aws
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 25.0M  100 25.0M    0     0   529k      0  0:00:48  0:00:48 --:--:--  672k
+SreeMacMin16GB:k-aws-eks sree$ ls -l 
+total 51360
+-rw-r--r--  1 sree  staff  26291632 Jul  6 16:23 heptio-authenticator-aws
+-rw-r--r--  1 sree  staff       571 Jul  6 16:22 notes.txt
+SreeMacMin16GB:k-aws-eks sree$ chmod +x ./heptio-authenticator-aws
+
+SreeMacMin16GB:k-aws-eks sree$ sudo cp ./heptio-authenticator-aws /usr/local/bin/heptio-authenticator-aws 
+Password:
+SreeMacMin16GB:k-aws-eks sree$ heptio-authenticator-aws 
+A tool to authenticate to Kubernetes using AWS IAM credentials
+
+Usage:
+  heptio-authenticator-aws [command]
+
+Available Commands:
+  help        Help about any command
+  init        Pre-generate certificate, private key, and kubeconfig files for the server.
+  server      Run a webhook validation server suitable that validates tokens using AWS IAM
+  token       Authenticate using AWS IAM and get token for Kubernetes
+  verify      Verify a token for debugging purpose
+
+Flags:
+  -i, --cluster-id ID     Specify the cluster ID, a unique-per-cluster identifier for your heptio-authenticator-aws installation.
+  -c, --config filename   Load configuration from filename
+  -h, --help              help for heptio-authenticator-aws
+
+Use "heptio-authenticator-aws [command] --help" for more information about a command.
+
+
+SreeMacMin16GB:k-aws-eks sree$ aws --version
+aws-cli/1.15.4 Python/3.6.5 Darwin/17.0.0 botocore/1.10.14
+SreeMacMin16GB:k-aws-eks sree$ pip --version
+pip 10.0.1 from /usr/local/lib/python2.7/site-packages/pip (python 2.7)
+SreeMacMin16GB:k-aws-eks sree$ pip3 install awscli --upgrade --user
+
+Installing collected packages: botocore, awscli
+  Found existing installation: awscli 1.15.4
+    Uninstalling awscli-1.15.4:
+      Successfully uninstalled awscli-1.15.4
+Successfully installed awscli-1.15.52 botocore-1.10.51
+SreeMacMin16GB:k-aws-eks sree$ aws --version
+aws-cli/1.15.52 Python/3.6.5 Darwin/17.0.0 botocore/1.10.51
+SreeMacMin16GB:k-aws-eks sree$ 
+
+SreeMacMin16GB:k-aws-eks sree$ aws eks --region us-east-1 describe-cluster --name demo-sree
+{
+    "cluster": {
+        "name": "demo-sree",
+        "arn": "arn:aws:eks:us-east-1:504881750319:cluster/demo-sree",
+        "createdAt": 1530874058.08,
+        "version": "1.10",
+        "endpoint": "https://A6F56D5A955974F918882A23BDA276F3.sk1.us-east-1.eks.amazonaws.com",
+        "roleArn": "arn:aws:iam::504881750319:role/demo-eks",
+        "resourcesVpcConfig": {
+            "subnetIds": [
+                "subnet-4790731e",
+                "subnet-b8161590",
+                "subnet-17965760"
+            ],
+            "securityGroupIds": [
+                "sg-b67abbfd"
+            ],
+            "vpcId": "vpc-4f09a82a"
+        },
+        "status": "ACTIVE",
+        "certificateAuthority": {
+            "data": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRFNE1EY3dOakV3TlRRME0xb1hEVEk0TURjd016RXdOVFEwTTFvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTmNnCjZXQVJwWWxCblYzcnVuczFPVFErM1d4V09QbGIybnc5TkxrVUhjMGxxYnhaK0lBazZGU3FoTndmSWNoSWdPZWcKNTIzZ2MwOGo5cHR0RHlzcTdMbFZCNDB3aGxBREJlOTZ5SkdVS1lQZXJzZzNYeVVjS1lFd0dlRmZnc21qbDJsOQpjRG5lNHZ2Uis2UkZVOUJSNkprbXVVYjY2RHB1NnNVWTArS2JpVHpreHdlbnRzVXRmS05vZVMvRzl6d2h1bzlxClJwL0g5cnNhUk90MXhld2dLZ3B2WDNJNGxGRnZOTHJXekp1aDlRMWF3UWtWTXp2Q1E2eTBkZm1TRnQyKzJLYWQKc09neXNlMVhZUERBd1NCY3Z0em95dzkwbmF2bUZRV0ZWSUIzR2xtZHU5TFd4bFlFaWpuWHEybC9qZHUwbkhSbwo1MnRldFRmT2gvSXFaM09qYXVjQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFJSHE3T1hKdGlHZkpMdDY1blFMNS8rU1F6ZE8Kd3d6N2h5SWZQbE1SSkdWUW1oRGMwVTdNU3NWbXZBS0Vhamh3MXdkelB0amJOaWQ0WS9FTTlvV1gza2tFamFvYgo4bDE4MDFIcG9QZUUrcSt1b3k0YnZ5SlRjL0dXNnJYRWcvenVaTURRcEhVZ1F0clV5bkdBMEJrb2ZrdXFVUHVkCnJ6aFhuSGhqSnQzUjkwVWZIZitkMHpDUVVaSWl1NDVLUUFlbVhMR1FETmVOVGpUODlwL0QvY1RTUWZSQWgwY2QKMkpJcjgzcVE5ODlvdHdSb2xpZHJqSzE3Nk14K0pWZnZFQjRpZTNiYVZ5cTlpQ3R0WGQxcE9xQ21TaE5XRE5VZgpRdTFPcndMSGt5YmVMdDMvY2M3M0pNc2t6TTBsMDErQldwSlBHQ0dEK2JQblRyN056L1Q0UGxQMUdmZz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo="
+        }
+    }
+}
+
+
+
+
+arn:aws:iam::504881750319:role/demo-eks
+arn:aws:eks:us-east-1:504881750319:cluster/demo-sree
+https://A6F56D5A955974F918882A23BDA276F3.sk1.us-east-1.eks.amazonaws.com
+
+aws eks create-cluster --name devel \
+--role-arn arn:aws:iam::111122223333:role/eks-service-role-AWSServiceRoleForAmazonEKS-EXAMPLEBKZRQR \
+--resources-vpc-config subnetIds=subnet-a9189fe2,subnet-50432629,securityGroupIds=sg-f5c54184
+
+SreeMacMin16GB:k-aws-eks sree$ aws eks --region us-east-1 describe-cluster --name demo-sree --query cluster.status
+"ACTIVE"
+
+SreeMacMin16GB:k-aws-eks sree$ aws eks --region us-east-1 describe-cluster --name demo-sree --query cluster.status
+"ACTIVE"
+SreeMacMin16GB:k-aws-eks sree$ aws eks --region us-east-1 describe-cluster --name demo-sree --query cluster.endpoint
+"https://A6F56D5A955974F918882A23BDA276F3.sk1.us-east-1.eks.amazonaws.com"
+SreeMacMin16GB:k-aws-eks sree$ aws eks --region us-east-1 describe-cluster --name demo-sree --query cluster.certificateAuthority.data
+"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRFNE1EY3dOakV3TlRRME0xb1hEVEk0TURjd016RXdOVFEwTTFvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTmNnCjZXQVJwWWxCblYzcnVuczFPVFErM1d4V09QbGIybnc5TkxrVUhjMGxxYnhaK0lBazZGU3FoTndmSWNoSWdPZWcKNTIzZ2MwOGo5cHR0RHlzcTdMbFZCNDB3aGxBREJlOTZ5SkdVS1lQZXJzZzNYeVVjS1lFd0dlRmZnc21qbDJsOQpjRG5lNHZ2Uis2UkZVOUJSNkprbXVVYjY2RHB1NnNVWTArS2JpVHpreHdlbnRzVXRmS05vZVMvRzl6d2h1bzlxClJwL0g5cnNhUk90MXhld2dLZ3B2WDNJNGxGRnZOTHJXekp1aDlRMWF3UWtWTXp2Q1E2eTBkZm1TRnQyKzJLYWQKc09neXNlMVhZUERBd1NCY3Z0em95dzkwbmF2bUZRV0ZWSUIzR2xtZHU5TFd4bFlFaWpuWHEybC9qZHUwbkhSbwo1MnRldFRmT2gvSXFaM09qYXVjQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFJSHE3T1hKdGlHZkpMdDY1blFMNS8rU1F6ZE8Kd3d6N2h5SWZQbE1SSkdWUW1oRGMwVTdNU3NWbXZBS0Vhamh3MXdkelB0amJOaWQ0WS9FTTlvV1gza2tFamFvYgo4bDE4MDFIcG9QZUUrcSt1b3k0YnZ5SlRjL0dXNnJYRWcvenVaTURRcEhVZ1F0clV5bkdBMEJrb2ZrdXFVUHVkCnJ6aFhuSGhqSnQzUjkwVWZIZitkMHpDUVVaSWl1NDVLUUFlbVhMR1FETmVOVGpUODlwL0QvY1RTUWZSQWgwY2QKMkpJcjgzcVE5ODlvdHdSb2xpZHJqSzE3Nk14K0pWZnZFQjRpZTNiYVZ5cTlpQ3R0WGQxcE9xQ21TaE5XRE5VZgpRdTFPcndMSGt5YmVMdDMvY2M3M0pNc2t6TTBsMDErQldwSlBHQ0dEK2JQblRyN056L1Q0UGxQMUdmZz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo="
+SreeMacMin16GB:k-aws-eks sree$ 
+
+
+apiVersion: v1
+clusters:
+- cluster:
+    server: https://A6F56D5A955974F918882A23BDA276F3.sk1.us-east-1.eks.amazonaws.com
+    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUV$
+  name: demo-sree 
+contexts:
+- context:
+    cluster: kubernetes
+    user: aws
+  name: aws
+current-context: aws
+kind: Config
+preferences: {}
+users:
+- name: aws
+  user:
+    exec:
+      apiVersion: client.authentication.k8s.io/v1alpha1
+      command: heptio-authenticator-aws
+      args:
+        - "token"
+        - "-i"
+        - "<cluster-name>"
+        # - "-r"
+        # - "<role-arn>"
+      # env:
+        # - name: AWS_PROFILE
+        #   value: "<aws-profile>"
+
+
+SreeMacMin16GB:k-aws-eks sree$ echo $KUBECONFIG
+
+SreeMacMin16GB:k-aws-eks sree$ export KUBECONFIG=~/.kube/config-aws-eks 
+SreeMacMin16GB:k-aws-eks sree$ echo $KUBECONFIG
+/Users/sree/.kube/config-aws-eks
+SreeMacMin16GB:k-aws-eks sree$ 
+
+
+
+
+
+
+
+
+
+
+

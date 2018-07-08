@@ -1,0 +1,17 @@
+SreeMacMin16GB:k2 sree$ kubectl get pods 
+NAME                          READY     STATUS      RESTARTS   AGE
+nginx-sree-5585ddc57d-nddzg   1/1       Running     0          22h
+pi-9hvdw                      0/1       Completed   0          22h
+SreeMacMin16GB:k2 sree$ kubectl port-forward pods/nginx-sree-5585ddc57d-nddzg 8002:80
+Forwarding from 127.0.0.1:8002 -> 80
+Forwarding from [::1]:8002 -> 80
+Handling connection for 8002
+
+
+SreeMacMin16GB:k4-deployments sree$ curl localhost:8002
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+    body {

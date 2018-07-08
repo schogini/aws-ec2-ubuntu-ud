@@ -1,0 +1,22 @@
+
+
+CREATE TABLE IF NOT EXISTS questions
+  (id int AUTO_INCREMENT,
+   subject varchar(255) NULL,
+   
+   )
+
+  CREATE TABLE IF NOT EXISTS questions (
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  exam VARCHAR(45) DEFAULT NULL,  #FTS01
+  class VARCHAR(45) DEFAULT NULL,  #8
+  subject VARCHAR(45) DEFAULT NULL,  #P,C,M
+  start_date DATE DEFAULT NULL,
+  end_date DATE DEFAULT NULL,
+  description VARCHAR(255) DEFAULT NULL,
+  wrong VARCHAR(255) DEFAULT NULL,
+  avg_time VARCHAR(255) DEFAULT NULL,
+  recent_time VARCHAR(255) DEFAULT NULL,
+  last_date DATE DEFAULT NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB

@@ -1,0 +1,10 @@
+Building Helm Charts From the Ground Up: An Introduction to Kubernetes 
+	https://youtu.be/vQX5nokoqrQ
+Deploying Applications with Helm
+	https://youtu.be/uXaNh4Mrhdc
+Continuously delivering apps to Kubernetes using Helm - Adnan Abdulhusse
+	https://youtu.be/CmPK93hg5w8
+Delve into Helm: Advanced DevOps [I] - Lachlan Evenson & Adam Reese, Deis
+	https://youtu.be/cZ1S2Gp47ng
+
+

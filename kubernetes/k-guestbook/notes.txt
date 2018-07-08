@@ -1,0 +1,478 @@
+
+Example: Deploying PHP Guestbook application Objectives
+Start up a Redis master.
+Start up Redis slaves.
+Start up the guestbook frontend.
+Expose and view the Frontend Service.
+Clean up.
+
+
+https://kubernetes.io/docs/tutorials/stateless-application/guestbook/
+https://github.com/kubernetes/examples/tree/master/guestbook/ 
+
+git clone https://github.com/kubernetes/examples.git
+
+
+
+
+
+
+
+
+
+SreeMacMin16GB:k-guestbook sree$ ls -l examples/
+total 72
+-rw-r--r--   1 sree  staff  11357 Jul  5 10:44 LICENSE
+-rw-r--r--   1 sree  staff     98 Jul  5 10:44 OWNERS
+-rw-r--r--   1 sree  staff   1146 Jul  5 10:44 README.md
+-rw-r--r--   1 sree  staff    605 Jul  5 10:44 SECURITY_CONTACTS
+drwxr-xr-x  10 sree  staff    320 Jul  5 10:44 cassandra
+-rw-r--r--   1 sree  staff    148 Jul  5 10:44 code-of-conduct.md
+drwxr-xr-x  14 sree  staff    448 Jul  5 10:44 guestbook
+drwxr-xr-x  15 sree  staff    480 Jul  5 10:44 guestbook-go
+-rw-r--r--   1 sree  staff   4264 Jul  5 10:44 guidelines.md
+drwxr-xr-x   9 sree  staff    288 Jul  5 10:44 mysql-wordpress-pd
+drwxr-xr-x  36 sree  staff   1152 Jul  5 10:44 staging
+
+SreeMacMin16GB:k-guestbook sree$ cd examples/guestbook
+SreeMacMin16GB:guestbook sree$ tree
+.
+├── MAINTENANCE.md
+├── README.md
+├── all-in-one
+│   ├── frontend.yaml
+│   ├── guestbook-all-in-one.yaml
+│   └── redis-slave.yaml
+├── frontend-deployment.yaml
+├── frontend-service.yaml
+├── legacy
+│   ├── frontend-controller.yaml
+│   ├── redis-master-controller.yaml
+│   └── redis-slave-controller.yaml
+├── php-redis
+│   ├── Dockerfile
+│   ├── Makefile
+│   ├── controllers.js
+│   ├── guestbook.php
+│   └── index.html
+├── redis-master-deployment.yaml
+├── redis-master-service.yaml
+├── redis-slave
+│   ├── Dockerfile
+│   ├── Makefile
+│   └── run.sh
+├── redis-slave-deployment.yaml
+└── redis-slave-service.yaml
+
+4 directories, 22 files
+
+
+SreeMacMin16GB:guestbook sree$ pwd
+/Users/sree/vms/GitHub/aws-ec2-ubuntu-ud/kubernetes/k-guestbook/examples/guestbook
+SreeMacMin16GB:guestbook sree$ ls -l *.yaml
+-rw-r--r--  1 sree  staff  900 Jul  5 10:44 frontend-deployment.yaml
+-rw-r--r--  1 sree  staff  438 Jul  5 10:44 frontend-service.yaml
+-rw-r--r--  1 sree  staff  607 Jul  5 10:44 redis-master-deployment.yaml
+-rw-r--r--  1 sree  staff  233 Jul  5 10:44 redis-master-service.yaml
+-rw-r--r--  1 sree  staff  941 Jul  5 10:44 redis-slave-deployment.yaml
+-rw-r--r--  1 sree  staff  209 Jul  5 10:44 redis-slave-service.yaml
+SreeMacMin16GB:guestbook sree$ cat redis-master-deployment.yaml 
+apiVersion: apps/v1 #  for k8s versions before 1.9.0 use apps/v1beta2  and before 1.8.0 use extensions/v1beta1
+kind: Deployment
+metadata:
+  name: redis-master
+spec:
+  selector:
+    matchLabels:
+      app: redis
+      role: master
+      tier: backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: master
+        tier: backend
+    spec:
+      containers:
+      - name: master
+        image: k8s.gcr.io/redis:e2e  # or just image: redis
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+        - containerPort: 6379
+
+SreeMacMin16GB:guestbook sree$ cat redis-master-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-master
+  labels:
+    app: redis
+    role: master
+    tier: backend
+spec:
+  ports:
+  - port: 6379
+    targetPort: 6379
+  selector:
+    app: redis
+    role: master
+    tier: backend
+SreeMacMin16GB:guestbook sree$
+
+SreeMacMin16GB:guestbook sree$ cat redis-slave-deployment.yaml
+apiVersion: apps/v1 #  for k8s versions before 1.9.0 use apps/v1beta2  and before 1.8.0 use extensions/v1beta1
+kind: Deployment
+metadata:
+  name: redis-slave
+spec:
+  selector:
+    matchLabels:
+      app: redis
+      role: slave
+      tier: backend
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: slave
+        tier: backend
+    spec:
+      containers:
+      - name: slave
+        image: gcr.io/google_samples/gb-redisslave:v1
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        env:
+        - name: GET_HOSTS_FROM
+          value: dns
+          # If your cluster config does not include a dns service, then to
+          # instead access an environment variable to find the master
+          # service's host, comment out the 'value: dns' line above, and
+          # uncomment the line below:
+          # value: env
+        ports:
+        - containerPort: 6379
+
+SreeMacMin16GB:guestbook sree$ cat redis-slave-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-slave
+  labels:
+    app: redis
+    role: slave
+    tier: backend
+spec:
+  ports:
+  - port: 6379
+  selector:
+    app: redis
+    role: slave
+    tier: backend
+SreeMacMin16GB:guestbook sree$
+
+SreeMacMin16GB:guestbook sree$ cat frontend-deployment.yaml
+apiVersion: apps/v1 #  for k8s versions before 1.9.0 use apps/v1beta2  and before 1.8.0 use extensions/v1beta1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  selector:
+    matchLabels:
+      app: guestbook
+      tier: frontend
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: guestbook
+        tier: frontend
+    spec:
+      containers:
+      - name: php-redis
+        image: gcr.io/google-samples/gb-frontend:v4
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        env:
+        - name: GET_HOSTS_FROM
+          value: dns
+          # If your cluster config does not include a dns service, then to
+          # instead access environment variables to find service host
+          # info, comment out the 'value: dns' line above, and uncomment the
+          # line below:
+          # value: env
+        ports:
+        - containerPort: 80
+SreeMacMin16GB:guestbook sree$ 
+
+SreeMacMin16GB:guestbook sree$ cat frontend-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: guestbook
+    tier: frontend
+spec:
+  # comment or delete the following line if you want to use a LoadBalancer
+  type: NodePort 
+  # if your cluster supports it, uncomment the following to automatically create
+  # an external load-balanced IP for the frontend service.
+  # type: LoadBalancer
+  ports:
+  - port: 80
+  selector:
+    app: guestbook
+    tier: frontend
+SreeMacMin16GB:guestbook sree$ 
+
+Configuration files:
+====================
+redis-master-deployment.yaml
+redis-master-service.yaml
+
+redis-slave-deployment.yaml
+redis-slave-service.yaml
+
+frontend-deployment.yaml
+frontend-service.yaml
+
+Start up the Redis Master
+=========================
+The guestbook application uses Redis to store its data. It writes its data to a Redis master instance and reads data from multiple Redis slave instances.
+
+
+
+Creating the Redis Master Deployment
+====================================
+The manifest file specifies a Deployment controller that runs a single replica Redis master Pod.
+
+SreeMacMin16GB:guestbook sree$ kubectl apply -f https://k8s.io/examples/application/guestbook/redis-master-deployment.yaml
+deployment.apps/redis-master created
+SreeMacMin16GB:guestbook sree$ kubectl get pods
+NAME                                READY     STATUS              RESTARTS   AGE
+nginx-deployment-6ddf4c5bf7-85hrl   1/1       Running             0          32m
+nginx-deployment-6ddf4c5bf7-hdvcm   1/1       Running             0          32m
+nginx-sree-5585ddc57d-nddzg         1/1       Running             0          1d
+pi-9hvdw                            0/1       Completed           0          1d
+redis-master-55db5f7567-h5q4h       0/1       ContainerCreating   0          5s
+SreeMacMin16GB:guestbook sree$ kubectl logs -f redis-master-55db5f7567-h5q4h
+Error from server (BadRequest): container "master" in pod "redis-master-55db5f7567-h5q4h" is waiting to start: ContainerCreating
+SreeMacMin16GB:guestbook sree$ kubectl get pods
+NAME                                READY     STATUS      RESTARTS   AGE
+nginx-deployment-6ddf4c5bf7-85hrl   1/1       Running     0          39m
+nginx-deployment-6ddf4c5bf7-hdvcm   1/1       Running     0          39m
+nginx-sree-5585ddc57d-nddzg         1/1       Running     0          1d
+pi-9hvdw                            0/1       Completed   0          1d
+redis-master-55db5f7567-h5q4h       1/1       Running     0          6m
+SreeMacMin16GB:guestbook sree$ kubectl logs -f redis-master-55db5f7567-h5q4h
+                _._                                                  
+           _.-``__ ''-._                                             
+      _.-``    `.  `_.  ''-._           Redis 2.8.19 (00000000/0) 64 bit
+  .-`` .-```.  ```\/    _.,_ ''-._                                   
+ (    '      ,       .-`  | `,    )     Running in stand alone mode
+ |`-._`-...-` __...-.``-._|'` _.-'|     Port: 6379
+ |    `-._   `._    /     _.-'    |     PID: 1
+  `-._    `-._  `-./  _.-'    _.-'                                   
+ |`-._`-._    `-.__.-'    _.-'_.-'|                                  
+ |    `-._`-._        _.-'_.-'    |           http://redis.io        
+  `-._    `-._`-.__.-'_.-'    _.-'                                   
+ |`-._`-._    `-.__.-'    _.-'_.-'|                                  
+ |    `-._`-._        _.-'_.-'    |                                  
+  `-._    `-._`-.__.-'_.-'    _.-'                                   
+      `-._    `-.__.-'    _.-'                                       
+          `-._        _.-'                                           
+              `-.__.-'                                               
+
+[1] 05 Jul 05:25:23.956 # Server started, Redis version 2.8.19
+[1] 05 Jul 05:25:23.957 # WARNING: The TCP backlog setting of 511 cannot be enforced because /proc/sys/net/core/somaxconn is set to the lower value of 128.
+[1] 05 Jul 05:25:23.957 * The server is now ready to accept connections on port 6379
+
+Creating the Redis Master Service
+=================================
+The guestbook applications needs to communicate to the Redis master to write its data. You need to apply a Service to proxy the traffic to the Redis master Pod. A Service defines a policy to access the Pods.
+
+SreeMacMin16GB:guestbook sree$ kubectl apply -f https://k8s.io/examples/application/guestbook/redis-master-service.yaml
+service/redis-master created
+SreeMacMin16GB:guestbook sree$ kubectl get service
+NAME           TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+kubernetes     ClusterIP   10.96.0.1      <none>        443/TCP    39d
+redis-master   ClusterIP   10.102.130.0   <none>        6379/TCP   7s
+
+Start up the Redis Slaves
+=========================
+Although the Redis master is a single pod, you can make it highly available to meet traffic demands by adding replica Redis slaves.
+
+Creating the Redis Slave Deployment
+===================================
+Deployments scale based off of the configurations set in the manifest file. In this case, the Deployment object specifies two replicas.
+
+If there are not any replicas running, this Deployment would start the two replicas on your container cluster. Conversely, if there are more than two replicas are running, it would scale down until two replicas are running.
+
+SreeMacMin16GB:guestbook sree$ kubectl apply -f https://k8s.io/examples/application/guestbook/redis-slave-deployment.yaml
+deployment.apps/redis-slave created
+SreeMacMin16GB:guestbook sree$ kubectl get pods
+NAME                                READY     STATUS              RESTARTS   AGE
+nginx-deployment-6ddf4c5bf7-85hrl   1/1       Running             0          47m
+nginx-deployment-6ddf4c5bf7-hdvcm   1/1       Running             0          47m
+nginx-sree-5585ddc57d-nddzg         1/1       Running             0          1d
+pi-9hvdw                            0/1       Completed           0          1d
+redis-master-55db5f7567-h5q4h       1/1       Running             0          14m
+redis-slave-584c66c5b5-76t9v        0/1       ContainerCreating   0          4s
+redis-slave-584c66c5b5-jpgz8        0/1       ContainerCreating   0          4s
+SreeMacMin16GB:guestbook sree$ 
+
+Creating the Redis Slave Service
+================================
+The guestbook application needs to communicate to Redis slaves to read data. To make the Redis slaves discoverable, you need to set up a Service. A Service provides transparent load balancing to a set of Pods.
+
+SreeMacMin16GB:guestbook sree$ kubectl apply -f https://k8s.io/examples/application/guestbook/redis-slave-service.yaml
+service/redis-slave created
+SreeMacMin16GB:guestbook sree$ kubectl get service
+NAME           TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+kubernetes     ClusterIP   10.96.0.1      <none>        443/TCP    39d
+redis-master   ClusterIP   10.102.130.0   <none>        6379/TCP   7m
+redis-slave    ClusterIP   10.97.17.226   <none>        6379/TCP   3s
+
+
+
+Set up and Expose the Guestbook Frontend
+========================================
+The guestbook application has a web frontend serving the HTTP requests written in PHP. It is configured to connect to the redis-master Service for write requests and the redis-slave service for Read requests.
+
+Creating the Guestbook Frontend Deployment
+==========================================
+
+SreeMacMin16GB:guestbook sree$ kubectl apply -f https://k8s.io/examples/application/guestbook/frontend-deployment.yaml
+deployment.apps/frontend created
+SreeMacMin16GB:guestbook sree$ kubectl get pods -l app=guestbook -l tier=frontend
+NAME                        READY     STATUS              RESTARTS   AGE
+frontend-5c548f4769-chndf   0/1       ContainerCreating   0          3s
+frontend-5c548f4769-dqttl   0/1       ContainerCreating   0          2s
+frontend-5c548f4769-qhwh6   0/1       ContainerCreating   0          2s
+
+Creating the Frontend Service
+=============================
+The redis-slave and redis-master Services you applied are only accessible within the container cluster because the default type for a Service is ClusterIP. ClusterIP provides a single IP address for the set of Pods the Service is pointing to. This IP address is accessible only within the cluster.
+
+If you want guests to be able to access your guestbook, you must configure the frontend Service to be externally visible, so a client can request the Service from outside the container cluster. Minikube can only expose Services through NodePort.
+
+Note: Some cloud providers, like Google Compute Engine or Google Kubernetes Engine, support external load balancers. If your cloud provider supports load balancers and you want to use it, simply delete or comment out type: NodePort, and uncomment type: LoadBalancer.
+
+SreeMacMin16GB:guestbook sree$ kubectl apply -f https://k8s.io/examples/application/guestbook/frontend-service.yaml
+service/frontend created
+SreeMacMin16GB:guestbook sree$ kubectl get service
+NAME           TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+frontend       NodePort    10.104.55.64   <none>        80:31126/TCP   3s
+kubernetes     ClusterIP   10.96.0.1      <none>        443/TCP        39d
+redis-master   ClusterIP   10.102.130.0   <none>        6379/TCP       8m
+redis-slave    ClusterIP   10.97.17.226   <none>        6379/TCP       1m
+SreeMacMin16GB:guestbook sree$ 
+
+Viewing the Frontend Service via NodePort
+=========================================
+If you deployed this application to Minikube or a local cluster, you need to find the IP address to view your Guestbook.
+
+Run the following command to get the IP address for the frontend Service.
+SreeMacMin16GB:guestbook sree$ minikube service frontend --url
+minikube service [-n NAMESPACE] [--url] NAME
+http://192.168.99.100:31126
+
+LOADBALANCER
+============
+SreeMacMin16GB:guestbook sree$ cat frontend-service-loadbalancer.yaml 
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: guestbook
+    tier: frontend
+spec:
+  # comment or delete the following line if you want to use a LoadBalancer
+  #type: NodePort 
+  # if your cluster supports it, uncomment the following to automatically create
+  # an external load-balanced IP for the frontend service.
+  type: LoadBalancer
+  ports:
+  - port: 80
+  selector:
+    app: guestbook
+    tier: frontend
+SreeMacMin16GB:guestbook sree$ kubectl apply -f frontend-service-loadbalancer.yaml
+service/frontend configured
+SreeMacMin16GB:guestbook sree$ kubectl get service frontend
+NAME       TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+frontend   LoadBalancer   10.104.55.64   <pending>     80:31126/TCP   6m
+SreeMacMin16GB:guestbook sree$ kubectl get service frontend
+NAME       TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+frontend   LoadBalancer   10.104.55.64   <pending>     80:31126/TCP   7m
+
+It looks like you are using a custom Kubernetes Cluster (using minikube, kubeadm or the like). In this case, there is no LoadBalancer integrated (unlike AWS or Google Cloud). With this default setup, you can only use NodePort (more info here: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport) or an Ingress Controller. With the Ingress Controller you can setup a domain name which maps to your pod (more information here: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-controllers)
+
+https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-controllers
+SreeMacMin16GB:guestbook sree$ nano ingress.yaml
+SreeMacMin16GB:guestbook sree$ kubectl create -f ingress.yaml 
+ingress.extensions/test-ingress created
+SreeMacMin16GB:guestbook sree$ kubectl get ing
+NAME           HOSTS     ADDRESS   PORTS     AGE
+test-ingress   *                   80        8s
+SreeMacMin16GB:guestbook sree$ cat ingress.yaml 
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: test-ingress
+spec:
+  backend:
+    serviceName: testsvc
+    servicePort: 31126
+
+Alternatives
+
+You can expose a Service in multiple ways that don’t directly involve the Ingress resource:
+
+    Use Service.Type=LoadBalancer
+    Use Service.Type=NodePort
+    Use a Port Proxy
+
+
+Scale the Web Frontend
+=======================
+Scaling up or down is easy because your servers are defined as a Service that uses a Deployment controller.
+
+Run the following command to scale up the number of frontend Pods:
+
+  kubectl scale deployment frontend --replicas=5
+Query the list of Pods to verify the number of frontend Pods running:
+
+  kubectl get pods
+Run the following command to scale down the number of frontend Pods:
+
+  kubectl scale deployment frontend --replicas=2
+Query the list of Pods to verify the number of frontend Pods running:
+
+  kubectl get pods
+Cleaning up
+===========
+Deleting the Deployments and Services also deletes any running Pods. Use labels to delete multiple resources with one command.
+
+Run the following commands to delete all Pods, Deployments, and Services.
+
+  kubectl delete deployment -l app=redis
+  kubectl delete service -l app=redis
+  kubectl delete deployment -l app=guestbook
+  kubectl delete service -l app=guestbook
+
+
+
+  

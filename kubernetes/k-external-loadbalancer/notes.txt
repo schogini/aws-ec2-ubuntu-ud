@@ -1,0 +1,44 @@
+https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/
+
+Sree1>kubectl create -f deployment.yaml 
+deployment.apps/nginx-deployment created
+Sree1>kubectl create -f service.yaml 
+service/nginx-service created
+Sree1>kubectl get deploy,svc
+NAME                                     DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+deployment.extensions/nginx-deployment   1         1         1            1           38s
+
+NAME                    TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+service/kubernetes      ClusterIP      10.96.0.1       <none>        443/TCP          42d
+service/nginx-service   LoadBalancer   10.106.63.125   <pending>     8080:30132/TCP   20s
+Sree1>
+
+kubectl describe services example-service
+which should produce output like this:
+
+    Name:                   example-service
+    Namespace:              default
+    Labels:                 <none>
+    Annotations:            <none>
+    Selector:               app=example
+    Type:                   LoadBalancer
+    IP:                     10.67.252.103
+    LoadBalancer Ingress:   123.45.678.9
+    Port:                   <unnamed> 80/TCP
+    NodePort:               <unnamed> 32445/TCP
+    Endpoints:              10.64.0.4:80,10.64.1.5:80,10.64.2.4:80
+    Session Affinity:       None
+    Events:                 <none>
+The IP address is listed next to LoadBalancer Ingress.
+
+Note: If you are running your service on Minikube, you can find the assigned IP address and port with:
+
+
+
+Sree1>minikube service nginx-service --url
+http://192.168.99.100:30132
+Sree1>curl http://192.168.99.100:30132
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>

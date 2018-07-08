@@ -1,0 +1,14 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+   name: tesing-for-job
+spec:
+  template:
+    spec:
+      containers:
+      -  name: neo4j-server
+         image: neo4j:latest
+         imagePullPolicy: Always
+         command: ["echo", "SUCCESS"]
+      restartPolicy: Never
+  backoffLimit: 4

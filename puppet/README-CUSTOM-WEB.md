@@ -6,6 +6,8 @@ mkdir customweb
 docker network create puppet
 docker run -ti --rm --net puppet --name puppet  -p :8090:80 --hostname puppet -v $PWD/customweb:/customweb schogini/docker-puppetserver-ubuntu
 docker run -ti --rm --net puppet --name puppetnode1 -p :8091:80 --hostname puppetnode1 schogini/docker-puppetnode-ubuntu
+
+docker run -ti --rm --net puppet --name puppetnode2 -p :8091:80 --hostname puppetnode1 schogini/docker-puppetnode-ubuntu
 ```
 ##SERVER
 service puppetserver start

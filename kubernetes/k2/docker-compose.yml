@@ -1,0 +1,70 @@
+version: '3.3'
+
+# docker exec -ti pcm_dbserver_1 mysql
+
+services:
+  # git-init:
+  #   image: alpine/git
+  #   working_dir: /customweb
+  #   command: init 
+  #   volumes:
+  #     - ./customweb:/customweb
+  # git-remote:
+  #   image: alpine/git
+  #   working_dir: /customweb
+  #   command: remote add origin https://github.com/schogini/customweb.git 
+  #   volumes:
+  #     - ./customweb:/customweb
+  #   links:
+  #    - git-init
+  # git-pull:
+  #   image: alpine/git
+  #   working_dir: /customweb
+  #   # command: clone https://github.com/schogini/customweb.git 
+  #   command: pull origin master 
+  #   volumes:
+  #     - ./customweb:/customweb
+  #   links:
+  #    - git-remote
+  # git-checkout:
+  #   image: alpine/git
+  #   working_dir: /customweb
+  #   command: checkout -- .
+  #   volumes:
+  #     - ./customweb:/customweb
+  #   links:
+  #    - git-pull
+
+  dbserver:
+      image: 'mariadb'
+      ports:
+          - '1234:3306'      
+      volumes:
+          - ./db-data:/var/lib/mysql
+      environment:
+            MYSQL_ROOT_PASSWORD: dbroot123
+            # MYSQL_DATABASE: mybb
+            MYSQL_USER: root
+            MYSQL_PASSWORD: dbroot123
+          # logging:
+          #   driver: syslog
+          #   options:
+          #     tag: "{{.DaemonName}}(image={{.ImageName}};name={{.Name}};id={{.ID}})"
+          networks:
+            - pcm
+          # restart: on-failure
+
+  webserver:
+      build: ./webserver
+      links:
+          - dbserver
+          # - git-checkout
+      ports:
+          - '8235:80'
+      volumes:
+          - ./html:/var/www/html
+      networks:
+          - pcm
+  networks:
+      pcm:
+        driver: bridge         

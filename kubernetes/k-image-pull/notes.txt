@@ -1,0 +1,10 @@
+
+
+docker run neo4j echo SUCCESS
+
+
+SreeMacMin16GB:k-image-pull sree$ kubectl get namespaces
+NAME          STATUS    AGE
+default       Active    41d
+kube-public   Active    41d
+kube-system   Active    41d

@@ -1,0 +1,60 @@
+Kubernetes 101, we will cover kubectl, Pods, Volumes, and multiple containers
+
+https://github.com/kubernetes/website/tree/master/content/en/docs/tutorials
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis
+spec:
+  containers:
+  - name: redis
+    image: redis
+    volumeMounts:
+    - name: redis-persistent-storage
+      mountPath: /data/redis
+  volumes:
+  - name: redis-persistent-storage
+    emptyDir: {}
+
+
+Volume Types
+EmptyDir: Creates a new directory that exists as long as the Pod is running on the node, 
+	but it can persist across container failures and restarts.
+HostPath: Mounts an existing directory on the node’s file system. 
+	For example (/var/logs).
+
+
+
+
+
+Note that we have also added a Volume here. In this case, the Volume is mounted into both containers. It is marked readOnly in the web server’s case, since it doesn’t need to write to the directory.
+
+Finally, we have also introduced an environment variable to the git-monitor container, which allows us to parameterize that container with the particular git repository that we want to track.
+
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: www
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    volumeMounts:
+    - mountPath: /srv/www
+      name: www-data
+      readOnly: true
+  - name: git-monitor
+    image: kubernetes/git-monitor
+    env:
+    - name: GIT_REPO
+      value: http://github.com/some/repo.git
+    volumeMounts:
+    - mountPath: /data
+      name: www-data
+  volumes:
+  - name: www-data
+    emptyDir: {}
+
+	

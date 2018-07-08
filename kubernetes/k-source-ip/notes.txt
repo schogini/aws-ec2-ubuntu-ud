@@ -1,0 +1,86 @@
+https://kubernetes.io/docs/tutorials/services/source-ip/
+Applications running in a Kubernetes cluster find and communicate with each other, and the outside world, through the Service abstraction. This document explains what happens to the source IP of packets sent to different types of Services, and how you can toggle this behavior according to your needs.
+
+Sree1>kubectl run source-ip-app --image=k8s.gcr.io/echoserver:1.4
+deployment.apps/source-ip-app created
+Sree1>kubectl get nodes
+NAME       STATUS    ROLES     AGE       VERSION
+minikube   Ready     master    42d       v1.10.0
+Sree1>kubectl expose deployment source-ip-app --name=clusterip --port=80 --target-port=8080
+service/clusterip exposed
+Sree1>kubectl get svc
+NAME         TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+clusterip    ClusterIP   10.103.236.226   <none>        80/TCP    7s
+kubernetes   ClusterIP   10.96.0.1        <none>        443/TCP   42d
+Sree1>kubectl get svc clusterip
+NAME        TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+clusterip   ClusterIP   10.103.236.226   <none>        80/TCP    31s
+Sree1>kubectl run busybox -it --image=busybox --restart=Never --rm
+If you don't see a command prompt, try pressing enter.
+/ # ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue qlen 1
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+2: sit0@NONE: <NOARP> mtu 1480 qdisc noop qlen 1
+    link/sit 0.0.0.0 brd 0.0.0.0
+110: eth0@if111: <BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN> mtu 1500 qdisc noqueue 
+    link/ether 02:42:ac:11:00:07 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.7/16 brd 172.17.255.255 scope global eth0
+       valid_lft forever preferred_lft forever
+/ # wget -qO - 10.103.236.226
+CLIENT VALUES:
+client_address=172.17.0.7
+command=GET
+real path=/
+query=nil
+request_version=1.1
+request_uri=http://10.103.236.226:8080/
+
+SERVER VALUES:
+server_version=nginx: 1.10.0 - lua: 10001
+
+HEADERS RECEIVED:
+connection=close
+host=10.103.236.226
+user-agent=Wget
+BODY:
+-no body in request-/
+
+Sree1>kubectl get svc clusterip
+NAME        TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+clusterip   ClusterIP   10.103.236.226   <none>        80/TCP    9m
+Sree1>kubectl expose deployment source-ip-app --name=nodeport --port=80 --target-port=8080 --type=NodePort
+service/nodeport exposed
+Sree1>kubectl get svc clusterip
+NAME        TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+clusterip   ClusterIP   10.103.236.226   <none>        80/TCP    9m
+Sree1>kubectl get svc 
+NAME         TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+clusterip    ClusterIP   10.103.236.226   <none>        80/TCP         9m
+kubernetes   ClusterIP   10.96.0.1        <none>        443/TCP        42d
+nodeport     NodePort    10.96.36.45      <none>        80:32553/TCP   8s
+Sree1>NODEPORT=$(kubectl get -o jsonpath="{.spec.ports[0].nodePort}" services nodeport)
+Sree1>echo $NODEPORT
+32553
+
+
+Sree1>curl -s $(minikube ip):$NODEPORT
+CLIENT VALUES:
+client_address=172.17.0.1
+command=GET
+real path=/
+query=nil
+request_version=1.1
+request_uri=http://192.168.99.100:8080/
+
+SERVER VALUES:
+server_version=nginx: 1.10.0 - lua: 10001
+
+HEADERS RECEIVED:
+accept=*/*
+host=192.168.99.100:32553
+user-agent=curl/7.45.0
+BODY:
+-no body in request-Sree1>
+
